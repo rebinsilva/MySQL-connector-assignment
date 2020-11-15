@@ -7,8 +7,8 @@ Create an application in any programming language of your choice and access the 
 2. Student enrollment: The application should facilitate enrollment of students into the courses for the same semester and the same department used above. It should take roll No and course Ids from the user as input. Verify if the student has passed the prerequisites of the course that he/she wants to enroll. If the student had passed all the prerequisites, make necessary changes to enroll him/her in the course. It should display appropriate messages. 
 
 ## Requirements
-  * mysql
-  * libmysqlcppconn-dev
+  * MySQL server
+  * MySQL Connector for C++ devlopment library
   
   On Ubuntu, use the following command to install the requirements:
   ```
