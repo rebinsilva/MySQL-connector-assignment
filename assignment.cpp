@@ -15,7 +15,7 @@
 
 using namespace std;
 
-int main(void)
+int main(int argc, char *argv[])
 {
 string deptId, courseId, empId, classRoom, rollNo;
 bool result;
@@ -33,16 +33,16 @@ while (true) {
   cin>>response;
   if (response != 1 && response != 2)
     return EXIT_SUCCESS;
-  
+
   try {
     sql::Driver *driver;
     sql::Connection *con;
     sql::Statement *stmt, *stmt2;
     sql::ResultSet *res, *res2;
-  
+
     /* Create a connection */
     driver = get_driver_instance();
-    con = driver->connect("tcp://127.0.0.1:3306", "rebin", "#4piggyvector");
+    con = driver->connect("tcp://127.0.0.1:3306", argv[1], argv[2]);
     /* Connect to the MySQL test database */
     con->setSchema("academic_insti");
 
