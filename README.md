@@ -11,6 +11,13 @@ Create an application in any programming language of your choice and access the 
   * MySQL Connector for C++ devlopment library
   
   On Ubuntu, use the following command to install the requirements:
-  ```
+  ```sh
   sudo apt-get install mysql-server libmysqlcppconn-dev
   ```
+
+## Usage
+Use the username and password of the database below
+
+```
+./assignment <username> <password>
+```
