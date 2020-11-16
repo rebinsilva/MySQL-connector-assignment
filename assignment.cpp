@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <iostream>
-
+#include <cstring>
 /*
   Include directly the different
   headers from cppconn/ and mysql_driver.h + mysql_util.h
@@ -15,11 +15,42 @@
 
 using namespace std;
 
+bool lister(bool verbose,string table ,string row,sql::Connection *con, string sqlQuery){
+  sql::Statement *stmt;
+  sql::ResultSet *res;
+  cout<<"Executing :"<<sqlQuery<<"\n";
+  stmt = con->createStatement();
+  res = stmt->executeQuery(sqlQuery);
+
+  if (!res->next()) {
+      cout<<"The given "<<table<<" is not found in the database"<<endl;
+      return false;
+  }
+  if(verbose){
+    cout<<row<<"s availables are : ";
+    while(res->next()){
+      cout<<res->getString(1)<<", ";
+    }
+    cout<<"\n";
+  }
+  
+
+  delete res;
+  delete stmt;
+  return true;
+} 
+
 int main(int argc, char *argv[])
 {
 string deptId, courseId, empId, classRoom, rollNo;
 bool result;
 bool verified = false;
+bool verbose = false;
+
+if(argc > 3 && strcmp(argv[3],"verbose")==0){
+  verbose =true;
+  cout<<"Verbose Mode ON";
+}
 cout << endl;
 
 while (true) {
@@ -46,71 +77,67 @@ while (true) {
     /* Connect to the MySQL test database */
     con->setSchema("academic_insti");
 
+    lister(verbose,"Database","department", con, 
+        "select deptId from department");
 
     cout<<"Department id: ";
     cin>>deptId;
+    if(!lister(verbose,"Department","Course" ,con, 
+        "select courseId from course where deptNo = " + deptId + ""))continue;
+  
     cout<<"Course id: ";
     cin>>courseId;
 
     verified = false;
-    stmt = con->createStatement();
-    res = stmt->executeQuery("select courseId from course where deptNo = " + deptId + " and courseId = '" + courseId + "'");
-
-    if (!res->next()) {
-      cout<<"The given course is not found in the database"<<endl;
-      continue;
-    }
-
-    delete res;
-    delete stmt;
-
+    if(!lister(0,"Course Department Pair","",con,
+        "select courseId from course where deptNo = '" + deptId + "' and courseId = '" + courseId + "'"))
+        continue;
     verified = false;
     if (response == 1)
     {
-
-	cout<<"Teacher id: ";
-	cin>>empId;
-	cout<<"Classroom: ";
-	cin>>classRoom;
-
-	stmt = con->createStatement();
-    	res = stmt->executeQuery("SELECT empId from professor where deptNo = " + deptId + " and empId = '" + empId + "'");
-
-	if (!res->next()) {
-	  cout<<"The given teacher is not found in the database"<<endl;
-	  continue;
-	}
-
-    	delete res;
-    	delete stmt;
-
-	stmt = con->createStatement();
-    	result = stmt->execute("INSERT INTO teaching VALUES ('" + empId + "', '" 
-			+ courseId + "', 'even', '2006', '" + classRoom + "')");
+    lister(verbose,"Department","Professor", con, 
+        "SELECT empId from professor where deptNo = '" + deptId + "'");
+	  cout<<"Teacher id: ";
+	  cin>>empId;
+    if(!lister(0,"Department's Professor","", con, 
+        "SELECT empId from professor where deptNo = " + deptId + " and empId = '" + empId + "'"))
+        continue;
+    if(lister(0,"Course's Professor","", con, 
+        "SELECT empId from teaching where  courseId ='" + courseId + "' and empId = '" + empId + "' and sem = 'even' and year='2006'")){
+            cout<<"Already Registered for the course\n";
+            continue;
+        }else {
+          cout<<"Creating Now....\n";
+        };
+	  cout<<"Classroom: ";
+	  cin>>classRoom;
+	  stmt = con->createStatement();
+      	result = stmt->execute("INSERT INTO teaching VALUES ('" + empId + "', '" 
+			  + courseId + "', 'even', '2006', '" + classRoom + "')");
 
     	delete stmt;
     }
     else if (response == 2)
     {
-	bool verified = false;
+	  bool verified = false;
 
-	cout<<"Roll no of the student to be enrolled: ";
-	cin>>rollNo;
+	  cout<<"Roll no of the student to be enrolled: ";
+	  cin>>rollNo;
 
-	stmt = con->createStatement();
+	  stmt = con->createStatement();
     	res = stmt->executeQuery("SELECT rollNo from student where rollNo = " + rollNo);
 
-    	if (!res->next()) {
-	  cout<<"The given student is not found in the database"<<endl;
-	  continue;
-	}
+    if (!res->next()) {
+	    cout<<"The given student is not found in the database"<<endl;
+	    continue;
+	  }
 
     	delete res;
     	delete stmt;
 
 
-	verified = true;
-	stmt = con->createStatement();
+	  verified = true;
+	  stmt = con->createStatement();
     	res = stmt->executeQuery("select preReqCourse from prerequisite where courseId = '" + courseId + "'");
 
     	while (res->next()) {
