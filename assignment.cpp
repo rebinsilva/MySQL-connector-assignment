@@ -133,7 +133,7 @@ while (true) {
 
 	stmt = con->createStatement();
     	result = stmt->execute("INSERT INTO enrollment VALUES ('" + rollNo + "', '" 
-			+ courseId + "', 'even', '2006', 'S')");
+			+ courseId + "', 'even', '2006')");
 
     	delete stmt;
     }
