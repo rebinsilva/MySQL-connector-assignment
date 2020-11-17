@@ -28,6 +28,7 @@ bool lister(bool verbose,string table ,string row,sql::Connection *con, string s
   }
   if(verbose){
     cout<<row<<"s availables are : ";
+    cout<<res->getString(1)<<", ";
     while(res->next()){
       cout<<res->getString(1)<<", ";
     }
