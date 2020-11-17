@@ -18,7 +18,7 @@ using namespace std;
 bool lister(bool verbose,string table ,string row,sql::Connection *con, string sqlQuery){
   sql::Statement *stmt;
   sql::ResultSet *res;
-  cout<<"Executing :"<<sqlQuery<<"\n";
+  // cout<<"Executing :"<<sqlQuery<<"\n";
   stmt = con->createStatement();
   res = stmt->executeQuery(sqlQuery);
 
@@ -34,7 +34,7 @@ bool lister(bool verbose,string table ,string row,sql::Connection *con, string s
     cout<<"\n";
   }
   
-
+  // cout<<"--\n";
   delete res;
   delete stmt;
   return true;
@@ -95,74 +95,72 @@ while (true) {
     verified = false;
     if (response == 1)
     {
-    lister(verbose,"Department","Professor", con, 
+      lister(verbose,"Department","Professor", con, 
         "SELECT empId from professor where deptNo = '" + deptId + "'");
-	  cout<<"Teacher id: ";
-	  cin>>empId;
-    if(!lister(0,"Department's Professor","", con, 
+	    cout<<"Teacher id: ";
+	    cin>>empId;
+      if(!lister(0,"Department's Professor","", con, 
         "SELECT empId from professor where deptNo = " + deptId + " and empId = '" + empId + "'"))
         continue;
-    if(lister(0,"Course's Professor","", con, 
+      if(lister(0,"Course Professor Pair ","", con, 
         "SELECT empId from teaching where  courseId ='" + courseId + "' and empId = '" + empId + "' and sem = 'even' and year='2006'")){
-            cout<<"Already Registered for the course\n";
-            continue;
-        }else {
+          cout<<"Already Registered for the course\n";
+          continue;
+      }
+      else {
           cout<<"Creating Now....\n";
-        };
-	  cout<<"Classroom: ";
-	  cin>>classRoom;
-	  stmt = con->createStatement();
+      };
+	    cout<<"Classroom: ";
+	    cin>>classRoom;
+	    stmt = con->createStatement();
       	result = stmt->execute("INSERT INTO teaching VALUES ('" + empId + "', '" 
 			  + courseId + "', 'even', '2006', '" + classRoom + "')");
-
-    	delete stmt;
+      cout<<"Finished Adding Teaching Entry\n ";
     }
     else if (response == 2)
     {
-	  bool verified = false;
-
-	  cout<<"Roll no of the student to be enrolled: ";
-	  cin>>rollNo;
-
-	  stmt = con->createStatement();
-    	res = stmt->executeQuery("SELECT rollNo from student where rollNo = " + rollNo);
-
-    if (!res->next()) {
-	    cout<<"The given student is not found in the database"<<endl;
-	    continue;
-	  }
-
-    	delete res;
-    	delete stmt;
+      if(!lister(0,"Semester Course","", con, 
+        "SELECT empId from teaching where  courseId ='" + courseId + "' and sem = 'even' and year='2006'")){
+          // cout<<"Already Registered for the course\n";
+          continue;
+      }
+	    bool verified = false;
+      lister(verbose,"Department","Student", con, 
+        "SELECT rollNo from student where deptNo = '" + deptId + "' limit 20");
+	    cout<<"Roll no of the student to be enrolled: ";
+	    cin>>rollNo;
+      lister(0,"Student","",con,
+        "SELECT rollNo from student where rollNo = '" + rollNo+ "'"
+      );
 
 
-	  verified = true;
-	  stmt = con->createStatement();
+	    verified = true;
+	    stmt = con->createStatement();
     	res = stmt->executeQuery("select preReqCourse from prerequisite where courseId = '" + courseId + "'");
 
     	while (res->next()) {
-	  stmt2 = con->createStatement();
-    	  res2 = stmt->executeQuery("select * from enrollment where courseId = '" + res->getString("preReqCourse") + "' and rollNo = " + rollNo + " and ((sem = 'even' and year < 2006) or (sem = 'odd' and year <= 2016))");
-	  verified = verified && res2->next();
-	  if (!verified)
-	    break;
+	      verified = verified &&   lister(0, "Prereq :" + res->getString("preReqCourse"), "",con,
+          "select * from enrollment where courseId = '" + res->getString("preReqCourse") + "' and rollNo = " + rollNo + " and ((sem = 'even' and year < 2006) or (sem = 'odd' and year <= 2016))");
+	      // if (!verified)
+	        // break;
     	}
 
-	if (!verified) {
-	  cout<<"The given student has not finished the prerequisite course " + res->getString(1) + " for the course " + courseId<<endl;
-	  continue;
-	}
+	    if (!verified) {
+	      // cout<<"The given student has not finished the prerequisite course " + res->getString(1) + " for the course " + courseId<<endl;
+	      continue;
+	    }else{
+        cout<<"Student Finished all prerequisties, Enrolling...\n";
+      }
 
-    	delete res2;
-    	delete stmt2;
-    	delete res;
-    	delete stmt;
+      delete res;
+      delete stmt;
+	    stmt = con->createStatement();
+      	result = stmt->execute("INSERT INTO enrollment VALUES ('" + rollNo + "', '" 
+			  + courseId + "', 'even', '2006',null)");
 
-	stmt = con->createStatement();
-    	result = stmt->execute("INSERT INTO enrollment VALUES ('" + rollNo + "', '" 
-			+ courseId + "', 'even', '2006')");
+      delete stmt;
+      cout<<"Finished Enrolling\n";
 
-    	delete stmt;
     }
 
     delete con;
